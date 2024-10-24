@@ -6,15 +6,15 @@ const port = 3000;
 
 const drizzle = require('drizzle-orm/node-postgres');
 
-const db = drizzle(process.env.DATABASE_URL);
+const db = drizzle.drizzle(process.env.DATABASE_URL);
 
 
 // Middleware
 app.use(express.json());
 
 // Endpoints
-const authRouter = require('./routes/auth');
-const gameRouter = require('./routes/game');
+// const authRouter = require('./routes/auth');
+const gameRouter = require('./routes/game.ts');
 
 app.use('/auth', authRouter(db));
 app.use('/game', gameRouter(db));

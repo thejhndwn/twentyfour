@@ -1,7 +1,7 @@
 const express = require('express');
 const { v4: uuidv4 } = require('uuid');
-const {gamesTable} = require('./db/schema');
-const {problemsTable} = require('./db/schema');
+const {games} = require('../src/db/schema.ts');
+const {problems} = require('../src/db/schema.ts')
 const {evaluate} = require('mathjs');
 const {eq} = require('drizzle-orm');
 
@@ -10,11 +10,11 @@ const gameRouter = (db) => {
 
   async function getProblems() {
     try {
-      const problems = await db.select().from(problemsTable);
-      if (!problems || problems.length === 0) {
+      const problemsList = await db.select().from(problems);
+      if (!problemsList || problems.List.length === 0) {
         throw new Error('No problems found');
       }
-      return problems;
+      return problemsList;
     } catch (error) {
       throw new Error(`Failed to retrieve problems: ${error.message}`);
     }
@@ -23,7 +23,7 @@ const gameRouter = (db) => {
   async function createGame(problems) {
     try {
       const mixedIds = problems.map(problem => problem.id).sort(() => Math.random() - 0.5);
-      const newGame: typeof  gamesTable.$inferInsert = {
+      const newGame = {
         gameid:  uuidv4(),
         problemIds: mixedIds,
         problemIndex: 0,
@@ -47,7 +47,7 @@ const gameRouter = (db) => {
   async function saveAndServeNextProblem(timestamp, gameId) {
     try {
       // Fetch the game record from the database
-      const game = await db.select().from(gamesTable).where(eq(gamesTable.gameid, gameId));
+      const game = await db.select().from(games).where(eq(games.gameid, gameId));
       
       // Check if the game exists
       if (!game || game.length === 0) {
@@ -62,13 +62,13 @@ const gameRouter = (db) => {
       problemStartTimes.push(currentTimestamp);
   
       // Update the game record in the database
-      await db.update(gamesTable)
+      await db.update(games)
         .set({
           problem_start_times: problemStartTimes,
           problem_end_times: problemEndTimes,
           problem_index: incrementedIndex,
         })
-        .where(eq(gamesTable.gameid, gameId)); // Ensure to specify the condition for the update
+        .where(eq(games.gameid, gameId)); // Ensure to specify the condition for the update
   
       // Return the problem ID at the new index
       return game[0].problemIds[incrementedIndex];
@@ -86,7 +86,7 @@ const gameRouter = (db) => {
     try {
       const problems = await getProblems();
       const newGame = await createGame(problems);
-      await db.insert(gamesTable).values(newGame)
+      await db.insert(games).values(newGame)
 
       res.status(201).json({
         gameid: newGame.gameid,
