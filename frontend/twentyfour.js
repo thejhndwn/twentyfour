@@ -1,92 +1,80 @@
-import { createStore, combineReducers } from 'redux';
+const { expression } = require("mathjs");
 
-/**
- * 
- * // Initial States
-const metaInitialState = {
-  gameState: 'start',
-};
 
-const gameInitialState = {
-  numbers: {
-    card1: 1,
-    card2: 2,
-    card3: 3,
-    card4: 4,
-  },
-  operations: [],
-  currentExpression: '',
-  undoHistory: [],
-};
+expression = [];
+expressions = [];
 
-// Meta Reducer
-const metaReducer = (state = metaInitialState, action) => {
-  switch (action.type) {
-    case 'START_GAME':
-      return { gameState: 'in-game' };
-    case 'END_GAME':
-      return { gameState: 'end-game' };
-    default:
-      return state;
+
+function  addExpression(clickedButton) {
+  if  (clickedButton.type === 'number') {
+    if (expression.length ===0){
+      expression.push(clickedButton);
+    }
+    else if (expression[expression.length - 1].type ==  'number') {
+      let card = expression.pop()
+      //TODO: should visually deselect the old number
+      expression.push(clickedButton);
+    }
+    else  {
+      expression.push({
+
+
+      })
+    }
+    // if gameState top is a number, pop and replace the number
+    // if gameState top is an operation, pop all and make operation in operations
+      // also hide the first button and replace the value in the second button
   }
-};
 
-// Game Reducer
-const gameReducer = (state = gameInitialState, action) => {
-  switch (action.type) {
-    case 'PERFORM_OPERATION':
-      return {
-        ...state,
-        numbers: action.newNumbers,
-        operations: [...state.operations, action.operation],
-        currentExpression: action.newExpression,
-        undoHistory: [...state.undoHistory, action],
-      };
-    case 'UNDO_OPERATION':
-      const lastAction = state.undoHistory.pop();
-      return {
-        ...state,
-        numbers: lastAction.prevNumbers,
-        operations: state.operations.slice(0, -1),
-        currentExpression: lastAction.prevExpression,
-        undoHistory: state.undoHistory,
-      };
-    default:
-      return state;
+  else () {
+    // if operation, pop the operation and replace  with the new one
+    // if number, just append
+
+
   }
-};
+}
 
-// Combine Reducers
-const rootReducer = combineReducers({
-  meta: metaReducer,
-  game: gameReducer,
-});
+function handleUndo(){
+  if (expression.length > 1) {
+   expression.pop();
+   //TODO: visually need to deselect the button that was removed
+  }
+  else {
+    //if there's just one thing in the expression array then we need to undo the last expressions and use that as a reference to rebuild the cards
+    // in fact if we just hide the cards as we go we just need the reference to those cards and then the value for the current card, anyways it could be simplified but in this way we have all the data. 
+    // also it's good to have this logic in case we want to incorporate more than four cards later in the future. 
+  }
+}
 
-// Create Store
-const store = createStore(rootReducer);
+function handleOperationClick(event) {
+  const button = event.target;
+  const operationData = {
+    type: 'operation',
+    value: button.textContent
+  }
+  addExpression(operationData);
+}
 
-// Actions
-export const startGame = () => ({ type: 'START_GAME' });
-export const endGame = () => ({ type: 'END_GAME' });
-export const performOperation = (newNumbers, operation, newExpression, prevNumbers, prevExpression) => ({
-  type: 'PERFORM_OPERATION',
-  newNumbers,
-  operation,
-  newExpression,
-  prevNumbers,
-  prevExpression,
-});
-export const undoOperation = () => ({ type: 'UNDO_OPERATION' });
+function handleNumberClick(event) {
+  const button = event.target;
+  const  numberData = {
+    type: 'number',
+    cardNum:  button.id,
+    value: button.value
+  }
+    addExpression(numberData)
+}
 
-// Dispatch Actions
-store.dispatch(startGame());
-store.dispatch(performOperation({ card1: 2, card2: 3, card3: 4, card4: 4 }, 'add', '1 + 2', { card1: 1, card2: 2, card3: 3, card4: 4 }, ''));
-store.dispatch(undoOperation());
+// skip the current expression and go to the next one
+function handleSkip() {
+  //reset the card states
+  // make call to  the server to record skip and get the next  expression
+  // update the cards
+}
 
-// Access State
-const metaState = store.getState().meta;
-const gameState = store.getState().game;
+// handler for start game, end game, and play again/start game buttons
+// should handle adding and removing these things from the dom.
+// end might move to another page I'm still not sure
+function handleStateChange(event) {
 
-console.log(metaState);
-console.log(gameState);
- */
+}
