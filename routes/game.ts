@@ -1,17 +1,21 @@
-const express = require('express');
-const { v4: uuidv4 } = require('uuid');
-const {games} = require('../src/db/schema.ts');
-const {problems} = require('../src/db/schema.ts')
-const {evaluate} = require('mathjs');
-const {eq} = require('drizzle-orm');
+import express from 'express';
+import { v4 as uuidv4 } from 'uuid';
+import { games, problems } from '../src/db/schema';
+import { evaluate } from 'mathjs';
+import { eq } from 'drizzle-orm';
+
+console.log("exporting gameRouter")
+
 
 const gameRouter = (db) => {
   const router = express.Router();
 
   async function getProblems() {
     try {
+      console.log('getProblems')
       const problemsList = await db.select().from(problems);
-      if (!problemsList || problems.List.length === 0) {
+      console.log(problemsList)
+      if (!problemsList || problemsList.length === 0) {
         throw new Error('No problems found');
       }
       return problemsList;
@@ -48,25 +52,25 @@ const gameRouter = (db) => {
     try {
       // Fetch the game record from the database
       const game = await db.select().from(games).where(eq(games.gameid, gameId));
-      
+      console.log("got game")
       // Check if the game exists
-      if (!game || game.length === 0) {
+      if (!game ) {
         throw new Error(`Game with ID ${gameId} not found.`);
       }
-  
-      const problemEndTimes = game[0].problem_end_times; // Access the first element
+      console.log(game)
+      const problemEndTimes = game[0].problemEndTimes; // Access the first element
       problemEndTimes.push(timestamp);
-      const incrementedIndex = game[0].problem_index + 1; // Access the first element
+      const incrementedIndex = game[0].problemIndex + 1; // Access the first element
       const currentTimestamp = Date.now();
-      const problemStartTimes = game[0].problem_start_times; // Access the first element
+      const problemStartTimes = game[0].problemStartTimes; // Access the first element
       problemStartTimes.push(currentTimestamp);
   
       // Update the game record in the database
       await db.update(games)
         .set({
-          problem_start_times: problemStartTimes,
-          problem_end_times: problemEndTimes,
-          problem_index: incrementedIndex,
+          problemStartTimes: problemStartTimes,
+          problemEndTimes: problemEndTimes,
+          problemIndex: incrementedIndex,
         })
         .where(eq(games.gameid, gameId)); // Ensure to specify the condition for the update
   
@@ -81,6 +85,8 @@ const gameRouter = (db) => {
   }
 
   router.post('/start', async (req, res) => {
+    console.log('reached /game/start endpoint')
+
     const { userid } = req.body
 
     try {
@@ -90,7 +96,8 @@ const gameRouter = (db) => {
 
       res.status(201).json({
         gameid: newGame.gameid,
-        problem: newGame.problemIds[newGame.problemIndex]
+        problem: newGame.problemIds[newGame.problemIndex],
+        problemStartTimes: [Date.now()]
       });
     } catch (error) {
       return res.status(500).json({ error: error.message });
@@ -107,9 +114,17 @@ const gameRouter = (db) => {
   });
 
   router.post('/skip', (req, res) => {
+    console.log('skip');
+    console.log(req.body);
     const { gameId } = req.body;
+    console.log('gameID');
+    console.log(gameId)
     const defaultTimestamp = new Date(0);
+    console.log('timestamp');
+
     const combo = saveAndServeNextProblem(defaultTimestamp, gameId);
+    console.log('somethign or another');
+
     res.status(201).json({combo: combo});
   
   });
@@ -146,4 +161,4 @@ const gameRouter = (db) => {
   return router;
 };
 
-module.exports = gameRouter;
+export default gameRouter;
