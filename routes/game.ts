@@ -50,6 +50,7 @@ const gameRouter = (db) => {
   
   async function saveAndServeNextProblem(timestamp, gameId) {
     try {
+      console.log(timestamp)
       // Fetch the game record from the database
       const game = await db.select().from(games).where(eq(games.gameid, gameId));
       console.log("got game")
@@ -60,11 +61,16 @@ const gameRouter = (db) => {
       console.log(game)
       const problemEndTimes = game[0].problemEndTimes; // Access the first element
       problemEndTimes.push(timestamp);
+      console.log('f')
+      console.log(problemEndTimes)
       const incrementedIndex = game[0].problemIndex + 1; // Access the first element
-      const currentTimestamp = Date.now();
+      const currentTimestamp = new Date().toISOString();
       const problemStartTimes = game[0].problemStartTimes; // Access the first element
       problemStartTimes.push(currentTimestamp);
+      console.log('problemStartTimes');
+      console.log(problemStartTimes);
   
+      console.log('ff')
       // Update the game record in the database
       await db.update(games)
         .set({
@@ -74,6 +80,7 @@ const gameRouter = (db) => {
         })
         .where(eq(games.gameid, gameId)); // Ensure to specify the condition for the update
   
+      console.log('fff')
       // Return the problem ID at the new index
       return game[0].problemIds[incrementedIndex];
   
@@ -97,7 +104,7 @@ const gameRouter = (db) => {
       res.status(201).json({
         gameid: newGame.gameid,
         problem: newGame.problemIds[newGame.problemIndex],
-        problemStartTimes: [Date.now()]
+        problemStartTimes: [new Date().toISOString()]
       });
     } catch (error) {
       return res.status(500).json({ error: error.message });
@@ -119,7 +126,7 @@ const gameRouter = (db) => {
     const { gameId } = req.body;
     console.log('gameID');
     console.log(gameId)
-    const defaultTimestamp = new Date(0);
+    const defaultTimestamp = new Date(0).toISOString();
     console.log('timestamp');
 
     const combo = saveAndServeNextProblem(defaultTimestamp, gameId);
@@ -131,7 +138,7 @@ const gameRouter = (db) => {
 
   router.post('/solve', (req, res) => {
     const { gameId, answer } = req.body;
-    const timestamp = Date.now();
+    const timestamp = new Date().toISOString();
     
     //check and verify answer
     if (evaluate(answer) != 24){

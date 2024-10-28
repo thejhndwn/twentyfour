@@ -15,6 +15,13 @@
       "when": 1730128225360,
       "tag": "0001_worried_skullbuster",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1730154858237,
+      "tag": "0002_faithful_scarlet_witch",
+      "breakpoints": true
     }
   ]
 }
