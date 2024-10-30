@@ -6,7 +6,8 @@ import {
 	text, 
 	foreignKey, 
 	timestamp, 
-	date 
+	date,
+	bigint
   } from "drizzle-orm/pg-core";
   import { sql } from "drizzle-orm";
   
@@ -30,8 +31,8 @@ import {
 	userid: uuid(),
 	problemIds: varchar("problem_ids", { length: 50 }).array(),
 	problemIndex: integer("problem_index"),
-	problemStartTimes: timestamp("problem_start_times", { mode: 'date' }).array(),
-	problemEndTimes: timestamp("problem_end_times", { mode: 'date' }).array(),
+	problemStartTimes: bigint("problem_start_times",{mode:'number'}).array(),
+	problemEndTimes: bigint("problem_end_times", {mode:'number'}).array(),
 	problemTimes: integer("problem_times").array(),
 	problemScores: integer("problem_scores").array(),
   }, (table) => {

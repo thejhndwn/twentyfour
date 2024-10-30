@@ -26,18 +26,19 @@ const gameRouter = (db) => {
   
   async function createGame(problems) {
     try {
+      console.log("create game")
       const mixedIds = problems.map(problem => problem.id).sort(() => Math.random() - 0.5);
       const newGame = {
         gameid:  uuidv4(),
         problemIds: mixedIds,
         problemIndex: 0,
-        problemStartTimes: [],
+        problemStartTimes: [Date.now()],
         problemEndTimes: [],
         problemTimes: [],
         problemScores: []
       };
       
-        
+      console.log("game made")
       return newGame;
     } catch (error) {
       throw new Error(`Failed to create new game: ${error.message}`);
@@ -64,11 +65,12 @@ const gameRouter = (db) => {
       console.log('f')
       console.log(problemEndTimes)
       const incrementedIndex = game[0].problemIndex + 1; // Access the first element
-      const currentTimestamp = new Date().toISOString();
+      const currentTimestamp = Date.now();
       const problemStartTimes = game[0].problemStartTimes; // Access the first element
       problemStartTimes.push(currentTimestamp);
       console.log('problemStartTimes');
       console.log(problemStartTimes);
+      console.log(incrementedIndex);
   
       console.log('ff')
       // Update the game record in the database
@@ -99,12 +101,13 @@ const gameRouter = (db) => {
     try {
       const problems = await getProblems();
       const newGame = await createGame(problems);
+      console.log("flag")
       await db.insert(games).values(newGame)
+      console.log("flaggerino")
 
       res.status(201).json({
         gameid: newGame.gameid,
-        problem: newGame.problemIds[newGame.problemIndex],
-        problemStartTimes: [new Date().toISOString()]
+        problem: newGame.problemIds[newGame.problemIndex]
       });
     } catch (error) {
       return res.status(500).json({ error: error.message });
@@ -120,34 +123,37 @@ const gameRouter = (db) => {
   
   });
 
-  router.post('/skip', (req, res) => {
+  router.post('/skip', async (req, res) => {
     console.log('skip');
     console.log(req.body);
     const { gameId } = req.body;
     console.log('gameID');
     console.log(gameId)
-    const defaultTimestamp = new Date(0).toISOString();
+    const defaultTimestamp = 0;
     console.log('timestamp');
 
-    const combo = saveAndServeNextProblem(defaultTimestamp, gameId);
+    const combo = await saveAndServeNextProblem(defaultTimestamp, gameId);
     console.log('somethign or another');
 
     res.status(201).json({combo: combo});
   
   });
 
-  router.post('/solve', (req, res) => {
+  router.post('/solve', async(req, res) => {
     const { gameId, answer } = req.body;
-    const timestamp = new Date().toISOString();
+    const timestamp = Date.now();
     
     //check and verify answer
+    //TODO add combo verification
     if (evaluate(answer) != 24){
       res.status(500).json({message:  'Invalid answer'});
     }
     
-    const combo  = saveAndServeNextProblem(timestamp, gameId);
+    const combo  = await saveAndServeNextProblem(timestamp, gameId);
+    console.log('let us check the combo')
+    console.log(combo);
 
-    res.status(201).json({ combo: combo});
+    res.status(201).json({ combo: combo });
     
   });
 
